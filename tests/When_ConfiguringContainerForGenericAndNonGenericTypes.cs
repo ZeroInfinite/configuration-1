@@ -88,8 +88,7 @@ namespace Microsoft.Practices.Unity.Configuration.Tests
             Assert.AreEqual(3, result.Items.Length);
         }
 
-        // [TestMethod]
-        // nested arrays with generics not supported by container
+        [TestMethod]
         public void Then_CanResolveConfiguredGenericTypeWithArrayOfArraysInjectedInConstructorWithSpecificElements()
         {
             var result = Container.Resolve<ItemsCollection<IItem>>("ArrayOfArraysThroughConstructorWithSpecificElements");

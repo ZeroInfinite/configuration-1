@@ -1,24 +1,25 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Unity.Builder;
+using Microsoft.Practices.Unity.TestSupport;
 using Unity.Builder.Strategy;
 using Unity.Strategy;
 
-namespace Microsoft.Practices.Unity.TestSupport
+namespace Microsoft.Practices.Unity.Configuration.Tests.TestSupport
 {
     /// <summary>
     /// Represents a chain of responsibility for builder strategies partitioned by stages.
     /// </summary>
     /// <typeparam name="TStageEnum">The stage enumeration to partition the strategies.</typeparam>
-    public class MockStagedStrategyChain<TStageEnum> : IStagedStrategyChain<TStageEnum>
+    public class MockStagedStrategyChain<TStageEnum> : IStagedStrategyChain<BuilderStrategy, TStageEnum>
     {
         private readonly MockStagedStrategyChain<TStageEnum> _innerChain;
         private readonly object _lockObject = new object();
-        private readonly List<IBuilderStrategy>[] _stages;
+        private readonly List<BuilderStrategy>[] _stages;
 
 
         /// <summary>
@@ -26,11 +27,11 @@ namespace Microsoft.Practices.Unity.TestSupport
         /// </summary>
         public MockStagedStrategyChain()
         {
-            _stages = new List<IBuilderStrategy>[NumberOfEnumValues()];
+            _stages = new List<BuilderStrategy>[NumberOfEnumValues()];
 
             for (int i = 0; i < _stages.Length; ++i)
             {
-                _stages[i] = new List<IBuilderStrategy>();
+                _stages[i] = new List<BuilderStrategy>();
             }
         }
 
@@ -44,14 +45,14 @@ namespace Microsoft.Practices.Unity.TestSupport
             _innerChain = innerChain;
         }
 
-        public event EventHandler<EventArgs> Invalidated = delegate(object sender, EventArgs args) {  };
+        public event EventHandler<EventArgs> Invalidated = delegate {  };
 
         /// <summary>
         /// Adds a strategy to the chain at a particular stage.
         /// </summary>
         /// <param name="strategy">The strategy to add to the chain.</param>
         /// <param name="stage">The stage to add the strategy.</param>
-        public void Add(IBuilderStrategy strategy, TStageEnum stage)
+        public void Add(BuilderStrategy strategy, TStageEnum stage)
         {
             lock (_lockObject)
             {
@@ -69,7 +70,7 @@ namespace Microsoft.Practices.Unity.TestSupport
         {
             lock (_lockObject)
             {
-                foreach (List<IBuilderStrategy> stage in _stages)
+                foreach (List<BuilderStrategy> stage in _stages)
                 {
                     stage.Clear();
                 }
@@ -112,12 +113,12 @@ namespace Microsoft.Practices.Unity.TestSupport
             return typeof(TStageEnum).GetTypeInfo().DeclaredFields.Count(f => f.IsPublic && f.IsStatic);
         }
 
-        void IStagedStrategyChain<TStageEnum>.Add(IBuilderStrategy strategy, TStageEnum stage)
+        public IEnumerator<BuilderStrategy> GetEnumerator()
         {
             throw new NotImplementedException();
         }
 
-        IStrategyChain IStagedStrategyChain.MakeStrategyChain()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
         }
